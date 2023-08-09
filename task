@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Variables
+
+TASK_FILE="tasks.txt":
+
+# Colores
+
+RED='\033[1;91m'
+GREEN='\033[1;92m'
+YELLOW='\033[1;93m'
+BLUE='\033[1;94m'
+MAGENTA='\033[1;95m'
+CYAN='\033[1;96m'
+WHITE='\033[1;97m'
+NC='\033[0m' # Sin color
+
+
+
+# verificar si existe el fichero
+
+if [ ! -e "$TASK_FILE" ]; then
+    touch "TASK_FILE"
+fi
+
+# Funcion para agregar una tarea
+
+add_task(){
+    echo $1 >> "$TASK_FILE"
+    echo -e "${GREEN}Tarea agregada: $1${NC}"
+}
+
+# Funcion para listar las tareas
+
+list_tasks(){
+    if [ -s "$TASK_FILE" ]; then
+        echo "Listar tareas:"
+        cat -n "$TASK_FILE"
+    else
+        echo "No hay tareas pendientes."
+    fi
+}
+
+# Funcion para eliminar una tarea
+
+delete_task(){
+    if [ -s "$TASK_FILE" ]; then
+        line_number=$1
+        sed -i "${line_number}d" "$TASK_FILE"
+        echo "Tarea eliminada"
+    else
+        echo "No hay tareas pendientes para eliminar."
+    fi
+}
+
+# Menu de opciones
+
+while true; do
+    echo -e "${CYAN}Gestor de Tareas${NC}"
+    echo -e "1. ${GREEN}Agregar Tarea${NC}"
+    echo -e "2. ${YELLOW}Listar Tarea${NC}"
+    echo -e "3. ${MAGENTA}Eliminar Tarea${NC}"
+    echo -e "4. ${WHITE}Salir${NC}"
+    read -p "Selecciona una opcion: " choice
+
+    case $choice in
+        1) 
+            read -p "Ingresar La nueva tarea: " new_task
+            add_task "$new_task"
+            ;;
+        2) 
+            list_tasks
+            ;;
+        3) 
+            list_tasks
+            if [ -s "$TASK_FILE" ]; then
+                read -p "Ingrese el numero de tarea que quieres eliminar: " task_number
+                delete_task "$task_number"
+            fi
+            ;;
+        4)
+            echo "ByeBye BB muaaa!"
+            exit 0
+            ;;
+        *)
+            echo "Opciones invalida. Por favor, seleccione una opcion valida."
+            ;;
+    esac
+done
