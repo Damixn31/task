@@ -2,7 +2,7 @@
 
 # Variables
 
-TASK_FILE="tasks.txt":
+TASK="tasks.txt":
 
 # Colores
 
@@ -15,38 +15,50 @@ CYAN='\033[1;96m'
 WHITE='\033[1;97m'
 NC='\033[0m' # Sin color
 
+# Colores prioridades
+
+PRIORITY_HIGH="${RED}ALTA${NC}"
+PRIORITY_MEDIUM="${YELLOW}MEDIA${NC}"
+PRIORITY_LOW="${GREEN}BAJA${NC}"
+PRIORITY_OTHER="${CYAN}OTRA${NC}"
 
 
 # verificar si existe el fichero
 
-if [ ! -e "$TASK_FILE" ]; then
-    touch "TASK_FILE"
+if [ ! -e "$TASK" ]; then
+    touch "TASK"
 fi
 
 # Funcion para agregar una tarea
 
 add_task(){
-    echo $1 >> "$TASK_FILE"
-    echo -e "${GREEN}Tarea agregada: $1${NC}"
+    echo "[$1] $2" >> "$TASK"
+    echo -e "${GREEN}Tarea [$1] agregada: $2${NC}"
 }
 
 # Funcion para listar las tareas
 
 list_tasks(){
-    if [ -s "$TASK_FILE" ]; then
-        echo "Listar tareas:"
-        cat -n "$TASK_FILE"
+    if [ -s "$TASK" ]; then
+        echo -e "${YELLOW}Listar tareas:${NC}"
+        awk -F'[][]' -v priority_high="${PRIORITY_HIGH}" -v priority_medium="${PRIORITY_MEDIUM}" -v priority_low="${PRIORITY_LOW}" -v priority_other="${PRIORITY_OTHER}" '
+            BEGIN { count = 1 }
+            /ALTA/ {gsub("ALTA", priority_high, $2); printf "%d. %s\n", count++, $0}
+            /MEDIA/ {gsub("MEDIA", priority_medium, $2); printf "%d. %s\n", count++, $0}
+            /BAJA/ {gsub("BAJA", priority_low, $2); printf "%d. %s\n", count++, $0}
+            /OTRA/ {gsub("OTRA", priority_other, $2); printf "%d. %s\n", count++, $0}
+       ' "$TASK" | sort -k2,2
     else
-        echo "No hay tareas pendientes."
+        echo -e "${YELLOW}No hay tareas pendientes.${NC}"
     fi
 }
 
 # Funcion para eliminar una tarea
 
 delete_task(){
-    if [ -s "$TASK_FILE" ]; then
+    if [ -s "$TASK" ]; then
         line_number=$1
-        sed -i "${line_number}d" "$TASK_FILE"
+        sed -i "${line_number}d" "$TASK"
         echo "Tarea eliminada"
     else
         echo "No hay tareas pendientes para eliminar."
@@ -57,28 +69,38 @@ delete_task(){
 
 while true; do
     echo -e "${CYAN}Gestor de Tareas${NC}"
-    echo -e "1. ${GREEN}Agregar Tarea${NC}"
-    echo -e "2. ${YELLOW}Listar Tarea${NC}"
-    echo -e "3. ${MAGENTA}Eliminar Tarea${NC}"
-    echo -e "4. ${WHITE}Salir${NC}"
+    echo -e "1. ${GREEN}Agregar${NC} Tarea ${RED}alta${NC}"
+    echo -e "2. ${GREEN}Agregar Tarea media${NC}"
+    echo -e "3. ${GREEN}Agregar Tarea baja${NC}"
+    echo -e "4. ${MAGENTA}Listar Tarea${NC}"
+    echo -e "5. ${RED}Eliminar Tarea${NC}"
+    echo -e "6. ${YELLOW}Salir${NC}"
     read -p "Selecciona una opcion: " choice
 
     case $choice in
-        1) 
-            read -p "Ingresar La nueva tarea: " new_task
-            add_task "$new_task"
+         1) 
+            read -p "Ingresar La nueva tarea alta: " new_task
+            add_task "ALTA" "$new_task"
             ;;
-        2) 
-            list_tasks
-            ;;
+         2) 
+            read -p "Ingresar La nueva tarea media: " new_task
+            add_task "MEDIA" "$new_task"
+            ;;       
         3) 
+            read -p "Ingresar La nueva tarea baja: " new_task
+            add_task "BAJA" "$new_task"
+            ;;
+        4) 
             list_tasks
-            if [ -s "$TASK_FILE" ]; then
+            ;;
+        5) 
+            list_tasks
+            if [ -s "$TASK" ]; then
                 read -p "Ingrese el numero de tarea que quieres eliminar: " task_number
                 delete_task "$task_number"
             fi
             ;;
-        4)
+        6)
             echo "ByeBye BB muaaa!"
             exit 0
             ;;
